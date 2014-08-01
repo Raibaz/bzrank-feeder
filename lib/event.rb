@@ -1,28 +1,38 @@
-require 'digest/md5'
-
 class Event
+  
+  attr_accessor :data  
+  attr_accessor :timestamp
+  attr_accessor :player
+  attr_accessor :type
+  attr_accessor :target
+  attr_accessor :argument
 
-  attr_accessor :redis
-  attr_accessor :data
-  attr_accessor :players_to_recalculate
+  def initialize(mongo, data, game)
+    @data = data    
+    @mongo = mongo
 
-  def initialize(redis, data)
-    @redis = redis
-    @data = data
-    @players_to_recalculate = Array.new
+    @timestamp = data[0]
+    @type      = data[1]
+    @player    = data[2]
+    @target    = data[3]
+    @argument  = data[4]
+    @game      = game
 
-    processData
   end
 
-  def getPlyerId(player_name)
-    playerDigest = Digest::MD5.hexdigest(player_name)
-    playerId = @redis.get("user:#{playerDigest}:id")
+  def store
+    @mongo.storeEvent(self)
+  end
 
-    if !playerId
-      playerId = @redis.incr("next:user:id")
-      @redis.set("user:#{playerDigest}:id", playerId)
+  def to_s
+    "#@timestamp @type @player @target @argument"
+  end
+
+  def to_json
+    hash = {}
+    self.instance_variables.each do |var|
+      hash[var] = self.instance_variable_get var
     end
-
-    playerId.to_i
-  end
+    hash.to_json
+  end  
 end

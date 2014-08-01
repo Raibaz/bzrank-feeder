@@ -1,36 +1,44 @@
 require "rubygems"
-require "redis"
 
 $:.unshift File.dirname(__FILE__) + "/lib"
 
 require "event"
-require "shotfired"
-require "flaggrabbed"
-require "playerkilled"
-require "flagdropped"
+require "gamestart"
+require "mongoclient"
 
-basePath = (ENV['TMPDIR'] || ARGF.read) + "/"
+basePath = (ARGV.shift || ENV['TMPDIR'])
 
-redis = Redis.new
-players_to_recalculate = Array.new
+specialEventMappings = {
+  "worldtype" => "GameStart"
+}
 
 Dir.glob("#{basePath}*.bzrankdata") do |rb_file|
   file = File.new(rb_file, "r")
+
+  tmp = rb_file[rb_file.rindex("/"), rb_file.length]
+  gameStartTimestamp = tmp[1,tmp.index(".")-1]
+  puts gameStartTimestamp  
+
+  mongo = MongoClient.new("localhost", 27080)    
+  count = mongo.countEvents
+  puts "Before import: #{count} events total."  
+
   while (line = file.gets)
     
-    data = line.chop.split("\t")
-    event, *data = data
-    
-    begin
-      event = Kernel.const_get(event.capitalize).new(redis, data)
-      players_to_recalculate = (event.players_to_recalculate + players_to_recalculate).uniq
-    rescue
-      puts "Cannot handle #{event} data type... Aborting..."
-      exit 2
+    data = line.chop.split("\t")    
+
+    event = Event.new(mongo, data, gameStartTimestamp)        
+
+    if(specialEventMappings.include? event.type) 
+      then event = Kernel.const_get(specialEventMappings[event.type]).new(mongo, data, gameStartTimestamp);
     end
 
+    event.store
+        
   end
   file.close
+  count = mongo.countEvents
+  puts "After import: #{count} events total."
 
-  File.rename(rb_file, rb_file.gsub(/bzrankdata$/, 'processed-bzrankdata'))
+  #File.rename(rb_file, rb_file.gsub(/bzrankdata$/, 'processed-bzrankdata'))
 end
