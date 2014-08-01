@@ -6,7 +6,9 @@ require "event"
 require "gamestart"
 require "mongoclient"
 
-basePath = (ARGV.shift || ENV['TMPDIR'])
+basePath  = (ARGV.shift || ENV['TMPDIR'])
+mongoHost = (ARGV.shift || 'localhost')
+mongoPort = (ARGV.shift || 27080)
 
 specialEventMappings = {
   "worldtype" => "GameStart"
@@ -19,7 +21,7 @@ Dir.glob("#{basePath}*.bzrankdata") do |rb_file|
   gameStartTimestamp = tmp[1,tmp.index(".")-1]
   puts gameStartTimestamp  
 
-  mongo = MongoClient.new("localhost", 27080)    
+  mongo = MongoClient.new(mongoHost, mongoPort)    
   count = mongo.countEvents
   puts "Before import: #{count} events total."  
 
