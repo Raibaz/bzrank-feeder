@@ -42,5 +42,5 @@ Dir.glob("#{basePath}*.bzrankdata") do |rb_file|
   count = mongo.countEvents
   puts "After import: #{count} events total."
 
-  #File.rename(rb_file, rb_file.gsub(/bzrankdata$/, 'processed-bzrankdata'))
+  File.rename(rb_file, rb_file.gsub(/bzrankdata$/, 'processed-bzrankdata'))
 end
