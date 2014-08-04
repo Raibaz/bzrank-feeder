@@ -2,9 +2,9 @@ require "rubygems"
 
 $:.unshift File.dirname(__FILE__) + "/lib"
 
+require "mongoclient"
 require "event"
 require "gamestart"
-require "mongoclient"
 
 basePath  = (ARGV.shift || ENV['TMPDIR'])
 mongoHost = (ARGV.shift || 'localhost')
@@ -12,6 +12,7 @@ mongoPort = (ARGV.shift || 27080)
 
 specialEventMappings = {
   "worldtype" => "GameStart"
+  "playerscore" => "PlayerScore"
 }
 
 Dir.glob("#{basePath}*.bzrankdata") do |rb_file|
