@@ -12,7 +12,6 @@ mongoPort = (ARGV.shift || 27080)
 
 specialEventMappings = {
   "worldtype" => "GameStart"
-  "playerscore" => "PlayerScore"
 }
 
 Dir.glob("#{basePath}*.bzrankdata") do |rb_file|
