@@ -22,8 +22,8 @@ Dir.glob("#{basePath}*.bzrankdata") do |rb_file|
   puts gameStartTimestamp  
 
   mongo = MongoClient.new(mongoHost, mongoPort)    
-  count = mongo.countEvents
-  puts "Before import: #{count} events total."  
+  countBefore = mongo.countEvents
+  puts "Before import: #{countBefore} events total."  
 
   while (line = file.gets)
     
@@ -39,8 +39,12 @@ Dir.glob("#{basePath}*.bzrankdata") do |rb_file|
         
   end
   file.close
-  count = mongo.countEvents
-  puts "After import: #{count} events total."
+  countAfter = mongo.countEvents
+  puts "After import: #{countAfter} events total."
+
+  if((countAfter - countBefore) < 5) then
+    mongo.deleteGame(gameStartTimestamp)
+  end
 
   File.rename(rb_file, rb_file.gsub(/bzrankdata$/, 'processed-bzrankdata'))
 end

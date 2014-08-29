@@ -41,6 +41,11 @@ class MongoClient
 		resp = post("#{@gamesCollection}/_insert", eventToStore)
 	end
 
+	def deleteGame(gameStartTimestamp)
+		resp = post("#{@eventsCollection}/_remove", {"start" => gameStartTimestamp})		
+		resp = post("#{@gamesCollection}/_remove", {"@game" => gameStartTimestamp})		
+	end
+
 	def get(url)
 		uri = URI("http://#{@baseUrl}:#{@port}/#{url}")
 		resp = Net::HTTP.get(uri)
